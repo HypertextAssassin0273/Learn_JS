@@ -1,19 +1,21 @@
-// some method 
+/* some method */
+// Determines whether is there any single element of an array that satisfies the given condition or not
 
-const numbers = [3,5,11,9];
+const numbers = [3, 5, 11, 9];
 
-// kya ek bhi number esa hai jo even hai 
-// true 
+let result = numbers.some(num =>num % 2 === 0);
+// is there any single no. in the array which is even no.
 
-// const ans = numbers.some((number)=>number%2===0);
-// console.log(ans);
+console.log(result);
 
 const userCart = [
     {productId: 1, productName: "mobile", price: 12000},
-    {productId: 2, productName: "laptop", price: 22000},
+    {productId: 2, productName: "laptop", price: 122000},
     {productId: 3, productName: "tv", price: 35000},
     {productId: 3, productName: "macbook", price: 25000},
-]
+];
 
-const ans = userCart.some((cartItem)=>cartItem.price > 100000);
-console.log(ans);
+result = userCart.some(cartItem => cartItem.price > 100000);
+// is there any product in the cart whose price is greater than 100k
+
+console.log(result);

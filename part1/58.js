@@ -1,4 +1,5 @@
 /* filter method */
+// does not mutate the original array
 
 const numbers = [1, 3, 2, 6, 4, 8];
 

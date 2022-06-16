@@ -1,4 +1,5 @@
 /* map method */
+// does not mutate the original array
 
 const numbers = [3, 4, 6, 1, 8];
 

@@ -1,4 +1,7 @@
 /* important array methods (forEach method) */
+// it cannot mutate the original array, provided that 
+// if elements of array are not updated manually inside it
+// (i.e. by using self-referenced variable)
 
  const numbers = [4, 2, 5, 8];
 
@@ -37,6 +40,6 @@ for(let {firstName} of users){
     console.log(firstName);
 }
 
-users.forEach(({firstName}, index)=>{ // same as above, but with index (clean right?)
+users.forEach(({firstName}, index) => { // same as above, but with index (clean right?)
     console.log(`${firstName} (${index})`);
 })
