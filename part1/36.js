@@ -3,6 +3,8 @@
 // objects are reference type
 // objects store key value pairs
 // objects don't have index
+// also known as object-literals
+
 
 // how to create objects:
 // const person = {name:"shahzaib",age:22};
