@@ -1,27 +1,42 @@
-function hello(){
-    console.log("hello world");
-}
+/* understanding what is prototype */
 
-// javascript function ===> function  + object
+function hello(){ console.log("hello world"); };
+// javascript function behavior => function + object
 
-// console.log(hello.name);
+// name property => tells function name:
+console.log(hello.name);
 
-// you can add your own properties 
-// hello.myOwnProperty = "very unique value";
-// console.log(hello.myOwnProperty);
+// function provides more useful properties:
+// such as call, apply, bind, etc [see: '73.js' file]
 
-// name property ---> tells function name;
+// you can add your own properties to it:
+hello.myOwnProperty = "very unique value";
+console.log(hello.myOwnProperty);
 
-// function provides more usefull properties.
+// prototype => special property:
+console.log('hello.prototype (initially):\n', hello.prototype);
+// you can assume it returns an object {} 
+// that initially has only one method (i.e. constructor)
+
+// allows us to add properties & more methods within/inside itself:
+hello.prototype.abc = "abc";
+hello.prototype.xyz = "xyz";
+hello.prototype.sing = function(){ return "lalala"; };
+
+console.log('hello.prototype (afterwards):\n', hello.prototype);
+// console.log(hello.prototype.abc, hello.prototype.sing());
+
+// only functions provide prototype property:
+const hello2 = {}; //also: [], Map(), Set()
+console.log(`prototype is${(hello2.prototype)?'':' not'} present in hello2 (object-literal)`);
 
 
-// console.log(hello.prototype); // {}
-
-// only functions provide prototype property
-
-// hello.prototype.abc = "abc";
-// hello.prototype.xyz = "xyz";
-// hello.prototype.sing = function(){
-//     return "lalalla";
-// };
-// console.log(hello.prototype.sing());
+/* Conclusion:
+    In JS, when you define a function (in traditional style),
+    it means that you have actually created a (dynamic) class 
+    that only contains a constructor.
+    
+    This class-like-function can later-on add properties &
+    methods dynamically through prototype-property
+    (a.k.a. associated object or memory-space).
+*/

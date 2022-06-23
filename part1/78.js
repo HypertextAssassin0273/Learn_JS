@@ -1,7 +1,7 @@
 /* store methods in different object */
 
 // as in previous '77.js' file, whenever createUser() was called,
-// its methods were created seperately for each user,
+// methods were created seperately for each user,
 // resulting in memory-leak, which is un-efficient for a data of million users
 
 // in order to avoid this, we store methods in seperate object &

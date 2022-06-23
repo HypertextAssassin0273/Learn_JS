@@ -1,4 +1,3 @@
-
 /* function that creates object */
 
 // similar to object constructor

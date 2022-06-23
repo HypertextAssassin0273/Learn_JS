@@ -1,4 +1,4 @@
-/* Intro to Window (Global) Object */
+/* Intro to window (global) object & 'this' keyword */
 
 // "use strict";
 // restricts the use of 'this' object/keyword
