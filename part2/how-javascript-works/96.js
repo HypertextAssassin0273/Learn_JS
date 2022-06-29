@@ -1,4 +1,4 @@
-// function execution context 
+/* function execution context */
 
 let foo = "foo";
 console.log(foo);
