@@ -1,4 +1,4 @@
-/* arrow & inline functions */
+/* arrow (inline) functions */
 
 // const singHappyBirthday = function(){
 //     console.log("happy birthday to you ......");

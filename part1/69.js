@@ -1,6 +1,5 @@
 /* clone using Object.assign */
 
-
 const obj1 = {
     key1: "value1",
     key2: "value2"
@@ -22,6 +21,3 @@ obj1.key3 = "value3";
 
 console.log('obj1:', obj1);
 console.log('obj2:', obj2);
-
-
-// more discussion will be continued in O.O.P section

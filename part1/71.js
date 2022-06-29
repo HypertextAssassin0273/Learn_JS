@@ -2,7 +2,6 @@
 
 // (traditional) functions inside object
 
-
 function personInfo(){
     console.log(`person name is ${this.firstName} and age is ${this.age}`);
 };
