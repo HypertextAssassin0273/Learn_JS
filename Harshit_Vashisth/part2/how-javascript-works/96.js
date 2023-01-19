@@ -10,5 +10,5 @@ function getFullName(firstName, lastName){
     return fullName;
 }
 
-const personName = getFullName("harshit", "sharma");
+const personName = getFullName("shahzaib", "khan");
 console.log(personName);

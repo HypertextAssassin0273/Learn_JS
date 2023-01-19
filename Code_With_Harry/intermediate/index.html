@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Tutorial</title>
+    <style>
+        *{ /* for removing default margin and padding */
+            margin: 0;
+            padding: 0;
+        }
+        .container{
+            border: 2px solid red;
+            margin: 3px 0;
+            background: cyan;
+            padding: 9px;
+        }
+        .bg-primary{
+            background-color: blueviolet;
+        }
+        .text-success{ 
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to this JavaScript Tutorial</h1>
+    <div id="c1" class="container">
+
+        <!-- btn#click[onclick="clicked()"]{Click Me} -> emmet abrv. -->
+        <button id="click" onclick="clicked()">Click Me</button>
+        
+        <p>This is a paragraph which is the best para of this universe</p>
+    </div>
+    <div class="container">
+        <p>This is a paragraph</p>
+    </div>
+    
+    <!-- notes (for emmet abbreviations):
+        *) . -> class, # -> id
+        
+        1) div.container -> <div class="container"></div>
+
+        2) button#click -> <button id="click"></button>
+        
+        3) i) btn#c.c -> <button id="c" class="c"></button>
+          ii) btn.c#c -> <button class="c" id="c"></button>
+        
+        4) i) p{Click }>a{here}+{ to continue}
+          ii) p>{Click }+a{here}+{ to continue}
+          <p>Click <a href="">here</a> to continue</p> [same]
+        
+        *) for more info, check: https://docs.emmet.io/cheat-sheet
+    -->
+    
+    <script src="index.js"></script> <!-- recommended to write just before body end tag -->
+    </body>
+</html>

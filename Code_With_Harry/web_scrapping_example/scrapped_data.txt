@@ -1,0 +1,55 @@
+1. Charles Chaplin
+VM1452:3 2. Marlon Brando
+VM1452:3 3. Jack Nicholson
+VM1452:3 4. Daniel Day-Lewis
+VM1452:3 5. Meryl Streep
+VM1452:3 6. Tom Hanks
+VM1452:3 7. Mohanlal
+VM1452:3 8. Robert De Niro
+VM1452:3 9. Anthony Hopkins
+VM1452:3 10. Al Pacino
+VM1452:3 11. Leonardo DiCaprio
+VM1452:3 12. Joaquin Phoenix
+VM1452:3 13. Christoph Waltz
+VM1452:3 14. Kamal Haasan
+VM1452:3 15. Choi Min-sik
+VM1452:3 16. Gary Oldman
+VM1452:3 17. Heath Ledger
+VM1452:3 18. Javier Bardem
+VM1452:3 19. Mammootty
+VM1452:3 20. Russell Crowe
+VM1452:3 21. Anupam Kher
+VM1452:3 22. Christian Bale
+VM1452:3 23. Naseeruddin Shah
+VM1452:3 24. George Clooney
+VM1452:3 25. Sean Penn
+VM1452:3 26. Kevin Spacey
+VM1452:3 27. Johnny Depp
+VM1452:3 28. Sean Connery
+VM1452:3 29. Jennifer Lawrence
+VM1452:3 30. Morgan Freeman
+VM1452:3 31. Sandra Bullock
+VM1452:3 32. Clint Eastwood
+VM1452:3 33. Robin Williams
+VM1452:3 34. Benedict Cumberbatch
+VM1452:3 35. Tom Hiddleston
+VM1452:3 36. Denzel Washington
+VM1452:3 37. Amitabh Bachchan
+VM1452:3 38. Cate Blanchett
+VM1452:3 39. Bryan Cranston
+VM1452:3 40. Irrfan Khan
+VM1452:3 41. Jim Carrey
+VM1452:3 42. Dustin Hoffman
+VM1452:3 43. Nicolas Cage
+VM1452:3 44. Hugh Jackman
+VM1452:3 45. Adrien Brody
+VM1452:3 46. Edward Norton
+VM1452:3 47. Matt Damon
+VM1452:3 48. Brad Pitt
+VM1452:3 49. Samuel L. Jackson
+VM1452:3 50. Jake Gyllenhaal
+VM1452:3 51. Martin Freeman
+VM1452:3 52. Jared Leto
+VM1452:3 53. Thilakan
+
+//Note: you can use delimeters to identify spaces from here & then extract pure names list in .csv file. TADA!!!
