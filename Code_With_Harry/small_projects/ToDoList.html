@@ -48,6 +48,7 @@
             </form>
         </div>
     </nav>
+    <!-- note: incomplete navbar, need to add search functionality for items -->
 
     <div class="container my-4">
         <h2 class="text-center">My TODO List (C.R.U.D Operations)</h2>
@@ -62,9 +63,10 @@
             <textarea class="form-control" id="description" rows="3" maxlength="100"
                 placeholder="e.g. complete before sunday"></textarea>
         </div>
-        <div id="submission" onclick="refresh()">
-            <button type="submit" id="add" class="btn btn-primary">Add to List</button>
-            <button type="submit" id="clear" class="btn btn-danger">Clear List</button>
+        <div id="submission" style="display: inline-block;" onclick="refreshForm()">
+            <!-- note: this style restricts boundary for refresh function -->
+            <button class="btn btn-primary" onclick="addItem()">Add to List</button>
+            <button class="btn btn-danger" onclick="clearItems()">Clear List</button>
         </div>
 
         <div id="items" class="my-4">
@@ -88,21 +90,21 @@
             JsonItemArray = stringifiedJsonItemArray ? JSON.parse(stringifiedJsonItemArray) : [],
             tableBody = document.getElementById('table-body');
 
-        const actionButtonHtml = `<button type="button" class="btn btn-sm btn-primary">Edit</button>
-                                  <button type="button" class="btn btn-sm btn-danger">Delete</button>`,
-            submissionHtml = `<button type="submit" id="add" class="btn btn-primary">Add to List</button>
-                                <button type="submit" id="clear" class="btn btn-danger">Clear List</button>`;
+        const submissionHtml = `<button class="btn btn-primary" onclick="addItem()">Add to List</button>
+                                <button class="btn btn-danger" onclick="clearItems()">Clear List</button>`;
 
         /* generate items list */
         JsonItemArray.forEach((item, index) => {
             let row = tableBody.insertRow();
             row.insertCell(0).innerHTML = index + 1;
             row.insertCell(1).innerHTML = item[0], row.insertCell(2).innerHTML = item[1];
-            row.insertCell(3).innerHTML = actionButtonHtml;
+            row.insertCell(3).innerHTML =
+                `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
+                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
         });
 
         /* add items to the list */
-        document.getElementById('add').addEventListener("click", () => {
+        function addItem() {
             let title = document.getElementById('title').value,
                 description = document.getElementById('description').value;
 
@@ -112,33 +114,44 @@
             let row = tableBody.insertRow();
             row.insertCell(0).innerHTML = JsonItemArray.length;
             row.insertCell(1).innerHTML = title, row.insertCell(2).innerHTML = description;
-            row.insertCell(3).innerHTML = actionButtonHtml;
+            row.insertCell(3).innerHTML =
+                `<button class="btn btn-sm btn-primary" onclick="editItem(${JsonItemArray.length - 1})">Edit</button>
+                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${JsonItemArray.length - 1})">Delete</button>`;
 
             console.log("Updating list...");
-        });
+        }
 
-        /* delete or edit items from the list */
-        tableBody.addEventListener("click", elem => {
-            let index = elem.target.parentElement.parentElement.rowIndex - 1;
-            if (elem.target.classList.contains('btn-danger')) {
-                JsonItemArray.splice(index, 1);
-                localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
-                window.location.reload(); // need to update serial numbers of items
-                console.log("Deleting item...");
-            } else if (elem.target.classList.contains('btn-primary')) {
-                document.getElementById('title').value = JsonItemArray[index][0];
-                document.getElementById('description').value = JsonItemArray[index][1];
+        /* delete items from the list */
+        function deleteItem(index) {
+            JsonItemArray.splice(index, 1);
+            localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
-                elem.target.parentElement.innerHTML = `<i class="text-muted"><b>Pending</b></i>`;
-                document.getElementById('submission').innerHTML =
-                    `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${index})">Cancel</button>
-                     <button type="submit" class="btn btn-success" onclick="updateItem(${index})">Update</button>`;
-
-                console.log("Editing item...");
+            tableBody.deleteRow(index);
+            let tableRows = tableBody.rows;
+            while (index < tableRows.length) { // updating serial numbers of the items
+                tableRows[index].cells[3].innerHTML =
+                    `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
+                     <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
+                tableRows[index].cells[0].innerHTML = ++index;
             }
-        });
 
-        /* update an item */
+            console.log("Deleting item...");
+        }
+
+        /* edit items on the list */
+        function editItem(index) {
+            document.getElementById('title').value = JsonItemArray[index][0];
+            document.getElementById('description').value = JsonItemArray[index][1];
+
+            tableBody.rows[index].cells[3].innerHTML = `<i class="text-muted"><b>Pending</b></i>`;
+            document.getElementById('submission').innerHTML =
+                `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${index})">Cancel</button>
+                 <button type="submit" class="btn btn-success" onclick="updateItem(${index})">Update</button>`;
+
+            console.log("Editing item...");
+        }
+
+        /* update items on the list */
         function updateItem(index) {
             let title = document.getElementById('title').value,
                 description = document.getElementById('description').value;
@@ -146,37 +159,39 @@
             JsonItemArray[index] = [title, description];
             localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
-            tableBody.children[index].children[1].innerHTML = title;
-            tableBody.children[index].children[2].innerHTML = description;
-            tableBody.children[index].children[3].innerHTML = actionButtonHtml;
+            tableBody.rows[index].cells[1].innerHTML = title;
+            tableBody.rows[index].cells[2].innerHTML = description;
+            tableBody.rows[index].cells[3].innerHTML =
+                `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
+                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
 
             document.getElementById('submission').innerHTML = submissionHtml;
 
             console.log("Updating item...");
         }
 
-        /* cancel editing an item */
-        function cancelEditing(index) {
-            document.getElementById('submission').innerHTML =
-                `<button type="submit" id="add" class="btn btn-primary">Add to List</button>
-                 <button type="submit" id="clear" class="btn btn-danger">Clear List</button>`;
-            tableBody.children[index].children[3].innerHTML = actionButtonHtml;
-        }
-
-        /* refresh the submission form */
-        function refresh() {
-            document.getElementById('title').value = "";
-            document.getElementById('description').value = "";
-        }
-
-        /* clear items from the list */
-        document.getElementById('clear').addEventListener("click", () => {
+        /* clear items from the list & local storage */
+        function clearItems() {
             if (confirm("Are you sure you want to clear the list?")) {
                 localStorage.clear();
                 JsonItemArray = [], tableBody.innerHTML = ""; // alternate: window.location.reload();
                 console.log("Clearing list...");
             }
-        });
+        }
+
+        /* cancel editing an item */
+        function cancelEditing(index) {
+            document.getElementById('submission').innerHTML = submissionHtml;
+            tableBody.rows[index].cells[3].innerHTML =
+                `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
+                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
+        }
+
+        /* refresh the submission form */
+        function refreshForm() {
+            document.getElementById('title').value = "";
+            document.getElementById('description').value = "";
+        }
     </script>
 </body>
 
