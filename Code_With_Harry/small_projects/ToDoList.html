@@ -123,7 +123,7 @@
             if (elem.target.classList.contains('btn-danger')) {
                 JsonItemArray.splice(index, 1);
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
-                tableBody.deleteRow(index);
+                window.location.reload(); // need to update serial numbers of items
                 console.log("Deleting item...");
             } else if (elem.target.classList.contains('btn-primary')) {
                 document.getElementById('title').value = JsonItemArray[index][0];
