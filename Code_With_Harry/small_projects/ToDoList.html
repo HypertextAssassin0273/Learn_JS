@@ -63,12 +63,7 @@
             <textarea class="form-control" id="description" rows="3" maxlength="100"
                 placeholder="e.g. complete before sunday"></textarea>
         </div>
-        <div id="submission" style="display: inline-block;" onclick="refreshForm()">
-            <!-- note: this style restricts boundary for refresh function -->
-            <button class="btn btn-primary" onclick="addItem()">Add to List</button>
-            <button class="btn btn-danger" onclick="clearItems()">Clear List</button>
-        </div>
-
+        <div id="submission"></div>
         <div id="items" class="my-4">
             <h2>Your Items</h2>
             <table class="table">
@@ -86,21 +81,33 @@
     </div>
 
     <script>
+        /* initialize items list */
         let stringifiedJsonItemArray = localStorage.getItem('jsonItems'),
             JsonItemArray = stringifiedJsonItemArray ? JSON.parse(stringifiedJsonItemArray) : [],
             tableBody = document.getElementById('table-body');
 
-        const submissionHtml = `<button class="btn btn-primary" onclick="addItem()">Add to List</button>
-                                <button class="btn btn-danger" onclick="clearItems()">Clear List</button>`;
+        /* generate submission buttons */
+        const submissionHtml = document.getElementById('submission').innerHTML =
+            `<button class="btn btn-primary" onclick="addItem(), refreshForm()">Add to List</button>
+             <button class="btn btn-danger" onclick="clearItems()">Clear List</button>`;
+
+        /* validate actions when editing */
+        const validateActions = (action, index) => {
+            if (document.getElementById('submission').innerHTML == submissionHtml)
+                action(index);
+        }
+
+        /* item actions */
+        const actionHtml = index =>
+            `<button class="btn btn-sm btn-primary" onclick="validateActions(editItem, ${index})">Edit</button>
+             <button class="btn btn-sm btn-danger" onclick="validateActions(deleteItem, ${index})">Delete</button>`;
 
         /* generate items list */
         JsonItemArray.forEach((item, index) => {
             let row = tableBody.insertRow();
             row.insertCell(0).innerHTML = index + 1;
             row.insertCell(1).innerHTML = item[0], row.insertCell(2).innerHTML = item[1];
-            row.insertCell(3).innerHTML =
-                `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
-                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
+            row.insertCell(3).innerHTML = actionHtml(index);
         });
 
         /* add items to the list */
@@ -114,9 +121,7 @@
             let row = tableBody.insertRow();
             row.insertCell(0).innerHTML = JsonItemArray.length;
             row.insertCell(1).innerHTML = title, row.insertCell(2).innerHTML = description;
-            row.insertCell(3).innerHTML =
-                `<button class="btn btn-sm btn-primary" onclick="editItem(${JsonItemArray.length - 1})">Edit</button>
-                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${JsonItemArray.length - 1})">Delete</button>`;
+            row.insertCell(3).innerHTML = actionHtml(JsonItemArray.length - 1);
 
             console.log("Updating list...");
         }
@@ -129,14 +134,12 @@
             tableBody.deleteRow(index);
             let tableRows = tableBody.rows;
             while (index < tableRows.length) { // updating serial numbers of the items
-                tableRows[index].cells[3].innerHTML =
-                    `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
-                     <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
+                tableRows[index].cells[3].innerHTML = actionHtml(index);
                 tableRows[index].cells[0].innerHTML = ++index;
             }
-
             console.log("Deleting item...");
         }
+        // note: need to do this with event listeners & function binding instead of onclick (for better performance)
 
         /* edit items on the list */
         function editItem(index) {
@@ -145,7 +148,7 @@
 
             tableBody.rows[index].cells[3].innerHTML = `<i class="text-muted"><b>Pending</b></i>`;
             document.getElementById('submission').innerHTML =
-                `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${index})">Cancel</button>
+                `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${index}), refreshForm()">Cancel</button>
                  <button type="submit" class="btn btn-success" onclick="updateItem(${index})">Update</button>`;
 
             console.log("Editing item...");
@@ -156,18 +159,18 @@
             let title = document.getElementById('title').value,
                 description = document.getElementById('description').value;
 
-            JsonItemArray[index] = [title, description];
-            localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
+            if (!(title == JsonItemArray[index][0] && description == JsonItemArray[index][1])) {
+                JsonItemArray[index] = [title, description];
+                localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
-            tableBody.rows[index].cells[1].innerHTML = title;
-            tableBody.rows[index].cells[2].innerHTML = description;
-            tableBody.rows[index].cells[3].innerHTML =
-                `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
-                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
+                tableBody.rows[index].cells[1].innerHTML = title;
+                tableBody.rows[index].cells[2].innerHTML = description;
+                tableBody.rows[index].cells[3].innerHTML = actionHtml(index);
 
-            document.getElementById('submission').innerHTML = submissionHtml;
-
-            console.log("Updating item...");
+                document.getElementById('submission').innerHTML = submissionHtml;
+                console.log("Updating item...");
+                refreshForm();
+            }
         }
 
         /* clear items from the list & local storage */
@@ -182,9 +185,7 @@
         /* cancel editing an item */
         function cancelEditing(index) {
             document.getElementById('submission').innerHTML = submissionHtml;
-            tableBody.rows[index].cells[3].innerHTML =
-                `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
-                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
+            tableBody.rows[index].cells[3].innerHTML = actionHtml(index);
         }
 
         /* refresh the submission form */
