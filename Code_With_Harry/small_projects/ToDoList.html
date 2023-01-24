@@ -89,23 +89,18 @@
         /* initialize items list */
         let stringifiedJsonItemArray = localStorage.getItem('jsonItems'),
             JsonItemArray = stringifiedJsonItemArray ? JSON.parse(stringifiedJsonItemArray) : [],
-            tableBody = document.getElementById('table-body');
+            tableBody = document.getElementById('table-body'),
+            previousIndex = null; // acts as a flag to check if an item is being edited
 
         /* generate submission buttons */
         const submissionHtml = document.getElementById('submission').innerHTML =
             `<button class="btn btn-primary" onclick="addItem()">Add</button>
              <button class="btn btn-secondary" onclick="refreshForm()">Reset</button>`;
 
-        /* validate actions when editing */
-        const validateActions = (action, index) => {
-            if (document.getElementById('submission').innerHTML == submissionHtml)
-                action(index);
-        }
-
         /* item actions */
         const actionHtml = index =>
-            `<button class="btn btn-sm btn-primary" onclick="validateActions(editItem, ${index})">Edit</button>
-             <button class="btn btn-sm btn-danger" onclick="validateActions(deleteItem, ${index})">Delete</button>`;
+            `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
+             <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
 
         /* generate items list */
         JsonItemArray.forEach((item, index) => {
@@ -136,7 +131,7 @@
 
         /* delete items from the list */
         function deleteItem(index) {
-            if (confirm("Are you sure you want to delete this item?")) {
+            if (confirm(`Are you sure you want to delete item no. ${index + 1}?`)) {
                 JsonItemArray.splice(index, 1);
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
@@ -146,6 +141,18 @@
                     tableRows[index].cells[3].innerHTML = actionHtml(index);
                     tableRows[index].cells[0].innerHTML = ++index;
                 }
+
+                if (previousIndex != null) {
+                    if(previousIndex < index)
+                        tableBody.rows[previousIndex].cells[3].innerHTML = actionHtml(previousIndex);
+
+                    document.getElementById('submission').innerHTML = submissionHtml;
+                    previousIndex = null; // reset the flag
+                    refreshForm();
+                }
+                // document.getElementById('submission').innerHTML =
+                // `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${previousIndex-1}), refreshForm()">Cancel</button>
+                //  <button type="submit" class="btn btn-success" onclick="updateItem(${previousIndex-1})">Update</button>`;
                 console.log("Deleting item...");
             }
         }
@@ -160,6 +167,10 @@
             document.getElementById('submission').innerHTML =
                 `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${index}), refreshForm()">Cancel</button>
                  <button type="submit" class="btn btn-success" onclick="updateItem(${index})">Update</button>`;
+
+            if (previousIndex != null) // reset action buttons of the previous item
+                tableBody.rows[previousIndex].cells[3].innerHTML = actionHtml(previousIndex);
+            previousIndex = index; // update the flag
 
             window.scrollTo(0, 0); // scroll to top of the page
             console.log("Editing item...");
@@ -176,10 +187,8 @@
 
                 tableBody.rows[index].cells[1].innerHTML = title;
                 tableBody.rows[index].cells[2].innerHTML = description;
-                tableBody.rows[index].cells[3].innerHTML = actionHtml(index);
 
-                document.getElementById('submission').innerHTML = submissionHtml;
-
+                cancelEditing(index);
                 refreshForm();
                 console.log("Updating item...");
             } // rule: title cannot be empty & at least one field must be changed
@@ -198,6 +207,7 @@
         function cancelEditing(index) {
             document.getElementById('submission').innerHTML = submissionHtml;
             tableBody.rows[index].cells[3].innerHTML = actionHtml(index);
+            previousIndex = null; // reset the flag
         }
 
         /* refresh the submission form */
