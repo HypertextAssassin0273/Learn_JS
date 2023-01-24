@@ -52,6 +52,7 @@
 
     <div id="form" class="container my-4">
         <h2 class="text-center">My TODO List (C.R.U.D Operations)</h2>
+        <div id="warning"></div>
         <div class="form-group">
             <label for="title">Title</label>
             <input type="text" class="form-control" id="title" maxlength="30" placeholder="e.g. project evaluation">
@@ -86,18 +87,30 @@
     </div>
 
     <script>
-        /* initialize items list */
+        /* initialize items list along with other variables */
         let stringifiedJsonItemArray = localStorage.getItem('jsonItems'),
             JsonItemArray = stringifiedJsonItemArray ? JSON.parse(stringifiedJsonItemArray) : [],
+            submissionBody = document.getElementById('submission'),
+            warningBody = document.getElementById('warning'),
             tableBody = document.getElementById('table-body'),
-            previousIndex = null; // acts as a flag to check if an item is being edited
+            previousIndex = null, // acts as a flag to check if an item is being edited
+            TimerId = null; // helps to smooth out the warning message
 
         /* generate submission buttons */
-        const submissionHtml = document.getElementById('submission').innerHTML =
+        const submissionHtml = submissionBody.innerHTML =
             `<button class="btn btn-primary" onclick="addItem()">Add</button>
              <button class="btn btn-secondary" onclick="refreshForm()">Reset</button>`;
 
-        /* item actions */
+        /* warning message generator */
+        const warningHtml = message =>
+            `<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Warning!</strong> ${message}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+             </div>`;
+
+        /* action buttons generator */
         const actionHtml = index =>
             `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
              <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
@@ -115,7 +128,11 @@
             let title = document.getElementById('title').value,
                 description = document.getElementById('description').value;
 
-            if (title != '') { // title is required field while description is optional
+            if (title == '') {
+                clearTimeout(TimerId); // cancel previous scheduled warning message for smooth transition
+                warningBody.innerHTML = warningHtml("Title is a required field!");
+                TimerId = setTimeout(() => warningBody.innerHTML = '', 3000); // clear warning message after 3 seconds
+            } else { //rule: title is required field while description is optional
                 JsonItemArray.push([title, description]);
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
@@ -142,17 +159,13 @@
                     tableRows[index].cells[0].innerHTML = ++index;
                 }
 
-                if (previousIndex != null) {
-                    if(previousIndex < index)
+                if (previousIndex != null) { // if an item was being edited, update the action buttons
+                    if (previousIndex < index)
                         tableBody.rows[previousIndex].cells[3].innerHTML = actionHtml(previousIndex);
-
-                    document.getElementById('submission').innerHTML = submissionHtml;
-                    previousIndex = null; // reset the flag
+                    submissionBody.innerHTML = submissionHtml;
+                    previousIndex = null;
                     refreshForm();
                 }
-                // document.getElementById('submission').innerHTML =
-                // `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${previousIndex-1}), refreshForm()">Cancel</button>
-                //  <button type="submit" class="btn btn-success" onclick="updateItem(${previousIndex-1})">Update</button>`;
                 console.log("Deleting item...");
             }
         }
@@ -164,7 +177,7 @@
             document.getElementById('description').value = JsonItemArray[index][1];
 
             tableBody.rows[index].cells[3].innerHTML = `<i class="text-muted"><b>Pending</b></i>`;
-            document.getElementById('submission').innerHTML =
+            submissionBody.innerHTML =
                 `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${index}), refreshForm()">Cancel</button>
                  <button type="submit" class="btn btn-success" onclick="updateItem(${index})">Update</button>`;
 
@@ -172,7 +185,7 @@
                 tableBody.rows[previousIndex].cells[3].innerHTML = actionHtml(previousIndex);
             previousIndex = index; // update the flag
 
-            window.scrollTo(0, 0); // scroll to top of the page
+            window.scrollTo(0, 0); //scroll to top of the page (for better UX)
             console.log("Editing item...");
         }
 
@@ -181,7 +194,15 @@
             let title = document.getElementById('title').value,
                 description = document.getElementById('description').value;
 
-            if (!(title == '' || title == JsonItemArray[index][0] && description == JsonItemArray[index][1])) {
+            if (title == '') {
+                clearTimeout(TimerId);
+                warningBody.innerHTML = warningHtml("Title is a required field!");
+                TimerId = setTimeout(() => warningBody.innerHTML = '', 3000);
+            } else if (title == JsonItemArray[index][0] && description == JsonItemArray[index][1]) {
+                clearTimeout(TimerId);
+                warningBody.innerHTML = warningHtml("At least one field must be changed!");
+                TimerId = setTimeout(() => warningBody.innerHTML = '', 3000);
+            } else { // rule: title cannot be empty & at least one field must be changed
                 JsonItemArray[index] = [title, description];
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
@@ -191,7 +212,7 @@
                 cancelEditing(index);
                 refreshForm();
                 console.log("Updating item...");
-            } // rule: title cannot be empty & at least one field must be changed
+            }
         }
 
         /* clear items from the list & local storage */
@@ -199,13 +220,16 @@
             if (confirm("Are you sure you want to clear the list?")) {
                 localStorage.clear();
                 JsonItemArray = [], tableBody.innerHTML = ""; // alternate: window.location.reload();
+                submissionBody.innerHTML = submissionHtml;
+                previousIndex = null;
+                refreshForm();
                 console.log("Clearing list...");
             }
         }
 
         /* cancel editing an item */
         function cancelEditing(index) {
-            document.getElementById('submission').innerHTML = submissionHtml;
+            submissionBody.innerHTML = submissionHtml;
             tableBody.rows[index].cells[3].innerHTML = actionHtml(index);
             previousIndex = null; // reset the flag
         }
@@ -216,6 +240,11 @@
             document.getElementById('description').value = "";
         }
     </script>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
