@@ -50,7 +50,7 @@
     </nav>
     <!-- note: incomplete navbar, need to add search functionality for items -->
 
-    <div class="container my-4">
+    <div id="form" class="container my-4">
         <h2 class="text-center">My TODO List (C.R.U.D Operations)</h2>
         <div class="form-group">
             <label for="title">Title</label>
@@ -63,7 +63,12 @@
             <textarea class="form-control" id="description" rows="3" maxlength="100"
                 placeholder="e.g. complete before sunday"></textarea>
         </div>
-        <div id="submission"></div>
+        <div class="d-flex">
+            <div id="submission"></div>
+            <div class="ml-auto mr-1">
+                <button class="btn btn-danger" onclick="clearItems()">Clear</button>
+            </div>
+        </div>
         <div id="items" class="my-4">
             <h2>Your Items</h2>
             <table class="table">
@@ -88,8 +93,8 @@
 
         /* generate submission buttons */
         const submissionHtml = document.getElementById('submission').innerHTML =
-            `<button class="btn btn-primary" onclick="addItem(), refreshForm()">Add to List</button>
-             <button class="btn btn-danger" onclick="clearItems()">Clear List</button>`;
+            `<button class="btn btn-primary" onclick="addItem()">Add</button>
+             <button class="btn btn-secondary" onclick="refreshForm()">Reset</button>`;
 
         /* validate actions when editing */
         const validateActions = (action, index) => {
@@ -115,29 +120,34 @@
             let title = document.getElementById('title').value,
                 description = document.getElementById('description').value;
 
-            JsonItemArray.push([title, description]);
-            localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
+            if (title != '') { // title is required field while description is optional
+                JsonItemArray.push([title, description]);
+                localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
-            let row = tableBody.insertRow();
-            row.insertCell(0).innerHTML = JsonItemArray.length;
-            row.insertCell(1).innerHTML = title, row.insertCell(2).innerHTML = description;
-            row.insertCell(3).innerHTML = actionHtml(JsonItemArray.length - 1);
+                let row = tableBody.insertRow();
+                row.insertCell(0).innerHTML = JsonItemArray.length;
+                row.insertCell(1).innerHTML = title, row.insertCell(2).innerHTML = description;
+                row.insertCell(3).innerHTML = actionHtml(JsonItemArray.length - 1);
 
-            console.log("Updating list...");
+                refreshForm();
+                console.log("Updating list...");
+            }
         }
 
         /* delete items from the list */
         function deleteItem(index) {
-            JsonItemArray.splice(index, 1);
-            localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
+            if (confirm("Are you sure you want to delete this item?")) {
+                JsonItemArray.splice(index, 1);
+                localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
-            tableBody.deleteRow(index);
-            let tableRows = tableBody.rows;
-            while (index < tableRows.length) { // updating serial numbers of the items
-                tableRows[index].cells[3].innerHTML = actionHtml(index);
-                tableRows[index].cells[0].innerHTML = ++index;
+                tableBody.deleteRow(index);
+                let tableRows = tableBody.rows;
+                while (index < tableRows.length) { // updating serial numbers of the items
+                    tableRows[index].cells[3].innerHTML = actionHtml(index);
+                    tableRows[index].cells[0].innerHTML = ++index;
+                }
+                console.log("Deleting item...");
             }
-            console.log("Deleting item...");
         }
         // note: need to do this with event listeners & function binding instead of onclick (for better performance)
 
@@ -151,6 +161,7 @@
                 `<button type="submit" class="btn btn-danger" onclick="cancelEditing(${index}), refreshForm()">Cancel</button>
                  <button type="submit" class="btn btn-success" onclick="updateItem(${index})">Update</button>`;
 
+            window.scrollTo(0, 0); // scroll to top of the page
             console.log("Editing item...");
         }
 
@@ -159,7 +170,7 @@
             let title = document.getElementById('title').value,
                 description = document.getElementById('description').value;
 
-            if (!(title == JsonItemArray[index][0] && description == JsonItemArray[index][1])) {
+            if (!(title == '' || title == JsonItemArray[index][0] && description == JsonItemArray[index][1])) {
                 JsonItemArray[index] = [title, description];
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
@@ -168,9 +179,10 @@
                 tableBody.rows[index].cells[3].innerHTML = actionHtml(index);
 
                 document.getElementById('submission').innerHTML = submissionHtml;
-                console.log("Updating item...");
+
                 refreshForm();
-            }
+                console.log("Updating item...");
+            } // rule: title cannot be empty & at least one field must be changed
         }
 
         /* clear items from the list & local storage */
