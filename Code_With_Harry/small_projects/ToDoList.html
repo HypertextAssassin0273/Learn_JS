@@ -15,7 +15,7 @@
 
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">To-Do List</a>
+        <a class="navbar-brand" href="#">C.R.U.D Operations</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -29,7 +29,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Items
+                        Prioritized Items
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href="#">Action</a>
@@ -51,13 +51,11 @@
     <!-- note: incomplete navbar, need to add search functionality for items -->
 
     <div id="form" class="container my-4">
-        <h2 class="text-center">My TODO List (C.R.U.D Operations)</h2>
+        <h2 class="text-center">My TODO List</h2>
         <div id="warning"></div>
         <div class="form-group">
             <label for="title">Title</label>
             <input type="text" class="form-control" id="title" maxlength="30" placeholder="e.g. project evaluation">
-            <!-- aria-describedby="textHelp" -->
-            <!-- <small id="textHelp" class="text-muted">Add an Item to the List</small> -->
         </div>
         <div class="form-group">
             <label for="description">Description</label>
@@ -66,12 +64,24 @@
         </div>
         <div class="d-flex">
             <div id="submission"></div>
-            <div class="ml-auto mr-1">
+            <div id="list-operations" class="ml-auto mr-1">
+                <button class="btn btn-primary" onclick="toggleClass()">Swap</button> <!-- btn-primary -->
                 <button class="btn btn-danger" onclick="clearItems()">Clear</button>
             </div>
         </div>
         <div id="items" class="my-4">
-            <h2>Your Items</h2>
+            <div class="d-flex">
+                <h2>Your Items</h2>
+                <text class="ml-auto mr-1 text-muted" style="margin-top: 6px;">Show Entries</text>
+                <select id="table-view-limit" class="custom-select mr-1" style="width: auto;">
+                    <option value="3">3</option> <!-- extra (for small devices) -->
+                    <option value="5" selected>5</option> <!-- default, min -->
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option> <!-- max -->
+                </select>
+            </div>
             <table class="table">
                 <thead>
                     <tr>
@@ -83,6 +93,24 @@
                 </thead>
                 <tbody id="table-body"></tbody>
             </table>
+            <div class="btn-group btn-group-sm" role="group">
+                <button id="table-view-dec-btn" type="button" class="btn btn-light rounded-left border">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="16" viewbox="4 1 8 16">
+                        <path
+                            d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5z" />
+                    </svg>
+                </button>
+                <div id="table-view-num-btns" class="btn-group btn-group-sm" role="group"></div>
+                <button id="table-view-inc-btn" type="button" class="btn btn-light rounded-right border">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="16" viewbox="4 1 8 16">
+                        <path
+                            d="M4 8a.5.5 0 0 1 .5-.5h5.793L8.146 5.354a.5.5 0 1 1 .708-.708l3 3a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708-.708L10.293 8.5H4.5A.5.5 0 0 1 4 8z" />
+                    </svg>
+                </button>
+            </div>
+            <div style="display:inline; float:right; margin-right: 1px;">
+                <p id="table-view-summary" class="text-muted"></p>
+            </div>
         </div>
     </div>
 
@@ -90,21 +118,32 @@
         /* initialize items list along with other variables */
         let stringifiedJsonItemArray = localStorage.getItem('jsonItems'),
             JsonItemArray = stringifiedJsonItemArray ? JSON.parse(stringifiedJsonItemArray) : [],
+            // stringifiedJsonPriorityArray = localStorage.getItem('jsonPriorities'),
+            // JsonPriorityArray = stringifiedJsonPriorityArray ? JSON.parse(stringifiedJsonPriorityArray) : [],
+            listOperationsBody = document.getElementById('list-operations'),
             submissionBody = document.getElementById('submission'),
-            warningBody = document.getElementById('warning'),
+            messageBody = document.getElementById('warning'),
             tableBody = document.getElementById('table-body'),
+            tableViewBtnsBody = document.getElementById('table-view-num-btns'),
+            tableViewSummaryBody = document.getElementById('table-view-summary'),
+            tableViewLimit = 5, // default: 5 items per view
+            tableViewNo = 1, // default: 1st view
+            toggleListFlag = false, // flag for toggling list operations menu
             previousIndex = null, // acts as a flag to check if an item is being edited
-            TimerId = null; // helps to smooth out the warning message
+            timerId = null; // helps to smooth out the warning message
 
         /* generate submission buttons */
         const submissionHtml = submissionBody.innerHTML =
             `<button class="btn btn-primary" onclick="addItem()">Add</button>
              <button class="btn btn-secondary" onclick="refreshForm()">Reset</button>`;
 
-        /* warning message generator */
-        const warningHtml = message =>
-            `<div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <strong>Warning!</strong> ${message}
+        /* capitalize first letter of a string */
+        const capitalizeFirstLetter = string => string.charAt(0).toUpperCase() + string.slice(1);
+
+        /* message box generator */
+        const messageBoxHtml = (message, type = 'warning') => // default msg: warning
+            `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                <strong>${capitalizeFirstLetter(type)}:</strong> ${message}
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -115,13 +154,101 @@
             `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
              <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
 
+        /* table view buttons generator */
+        const tableViewBtnHtml = (index, active) =>
+            `<button type="button" class="btn btn-${active ? 'secondary' : 'light'} border"
+                onclick="changeTableView(${index})">${index}</button>`;
+
+        /* table view summary generator */
+        const tableViewSummaryHtml = (start, end, total) =>
+            `Showing ${start} to ${end} out of ${total} entries`;
+
+        /* generate table view summary */
+        function generateTableViewSummary() {
+            let start = (tableViewNo - 1) * tableViewLimit + 1, // start index of the items in the view
+                end = start + tableViewLimit - 1; // end index of the items in the view
+
+            if (end > JsonItemArray.length) end = JsonItemArray.length; // for last view if items are less than limit
+            tableViewSummaryBody.innerHTML = tableViewSummaryHtml(start, end, JsonItemArray.length);
+        }
+        generateTableViewSummary();
+
         /* generate items list */
-        JsonItemArray.forEach((item, index) => {
-            let row = tableBody.insertRow();
-            row.insertCell(0).innerHTML = index + 1;
-            row.insertCell(1).innerHTML = item[0], row.insertCell(2).innerHTML = item[1];
-            row.insertCell(3).innerHTML = actionHtml(index);
+        function generateItemsList() {
+            let start = (tableViewNo - 1) * tableViewLimit, // start index of the items in the view
+                end = start + tableViewLimit; // end index of the items in the view
+
+            for (let i = start; i != end && i != JsonItemArray.length; ++i) {
+                let row = tableBody.insertRow(-1); // '-1' is used to insert row at the end for all browsers
+                row.insertCell(-1).innerHTML = i + 1;
+                row.insertCell(-1).innerHTML = JsonItemArray[i][0];
+                row.insertCell(-1).innerHTML = JsonItemArray[i][1];
+                row.insertCell(-1).innerHTML = actionHtml(i - start);
+            }
+        }
+        generateItemsList();
+
+        /* generate table view buttons */
+        function generateTableViewBtns() {
+            let totalViews = Math.ceil(JsonItemArray.length / tableViewLimit);
+            for (let i = 1; i <= totalViews; ++i)
+                tableViewBtnsBody.innerHTML += tableViewBtnHtml(i, i == tableViewNo);
+        }
+        generateTableViewBtns();
+
+        /* operations for changing table view */
+        function changeTableView(index, previousViewNotDeleted = true) {
+            if (index == tableViewNo) return;
+
+            if (previousViewNotDeleted)
+                tableViewBtnsBody.children[tableViewNo - 1].setAttribute('class', 'btn btn-light border');
+            tableViewBtnsBody.children[index - 1].setAttribute('class', 'btn btn-secondary border');
+            tableViewNo = index;
+
+            tableBody.innerHTML = '';
+            generateItemsList();
+
+            refreshSubmissionBody();
+            generateTableViewSummary();
+        }
+
+        document.getElementById('table-view-inc-btn').addEventListener('click', () => {
+            if (tableViewNo < Math.ceil(JsonItemArray.length / tableViewLimit))
+                changeTableView(tableViewNo + 1);
+            else {
+                clearTimeout(timerId);
+                messageBody.innerHTML = messageBoxHtml("You are already on the the last page!", 'info');
+                timerId = setTimeout(() => messageBody.innerHTML = '', 3000);
+            }
         });
+
+        document.getElementById('table-view-dec-btn').addEventListener('click', () => {
+            if (tableViewNo > 1)
+                changeTableView(tableViewNo - 1);
+            else {
+                clearTimeout(timerId);
+                messageBody.innerHTML = messageBoxHtml("You are already on the first page!", 'info');
+                timerId = setTimeout(() => messageBody.innerHTML = '', 3000);
+            }
+        });
+
+        /* change table view limit */
+        document.getElementById('table-view-limit').addEventListener('change', elem => {
+            tableViewLimit = +elem.target.value; // points the (numeric) value of the selected option
+            tableViewNo = 1;
+
+            tableViewBtnsBody.innerHTML = '';
+            generateTableViewBtns();
+
+            tableBody.innerHTML = '';
+            generateItemsList();
+
+            refreshSubmissionBody();
+            generateTableViewSummary();
+        });
+        /* Important Note: 
+            'addEventListener()' can only be used for pre-existing elements
+             while 'onclick' can be used for newly created elements */
 
         /* add items to the list */
         function addItem() {
@@ -129,52 +256,68 @@
                 description = document.getElementById('description').value;
 
             if (title == '') {
-                clearTimeout(TimerId); // cancel previous scheduled warning message for smooth transition
-                warningBody.innerHTML = warningHtml("Title is a required field!");
-                TimerId = setTimeout(() => warningBody.innerHTML = '', 3000); // clear warning message after 3 seconds
+                clearTimeout(timerId); // cancel previous scheduled message for smooth transition
+                messageBody.innerHTML = messageBoxHtml("Title is a required field!");
+                timerId = setTimeout(() => messageBody.innerHTML = '', 3000); // clear warning message after 3 seconds
             } else { //rule: title is required field while description is optional
                 JsonItemArray.push([title, description]);
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
-                let row = tableBody.insertRow();
-                row.insertCell(0).innerHTML = JsonItemArray.length;
-                row.insertCell(1).innerHTML = title, row.insertCell(2).innerHTML = description;
-                row.insertCell(3).innerHTML = actionHtml(JsonItemArray.length - 1);
+                let totalViews = Math.ceil(JsonItemArray.length / tableViewLimit);
+                if (JsonItemArray.length % tableViewLimit == 1) // new view is created if items exceed the limit
+                    tableViewBtnsBody.innerHTML += tableViewBtnHtml(totalViews, false);
+
+                if (tableViewNo == totalViews) { // add item to the current view if it is the last view
+                    let row = tableBody.insertRow(-1);
+                    row.insertCell(-1).innerHTML = JsonItemArray.length;
+                    row.insertCell(-1).innerHTML = title, row.insertCell(-1).innerHTML = description;
+                    row.insertCell(-1).innerHTML = actionHtml((JsonItemArray.length - 1) % tableViewLimit);
+
+                    generateTableViewSummary();
+                } else // otherwise, change the view to the last view
+                    changeTableView(totalViews);
 
                 refreshForm();
-                console.log("Updating list...");
+                // console.log("Adding item...");
             }
         }
 
         /* delete items from the list */
         function deleteItem(index) {
-            if (confirm(`Are you sure you want to delete item no. ${index + 1}?`)) {
-                JsonItemArray.splice(index, 1);
+            let start = (tableViewNo - 1) * tableViewLimit;
+            if (confirm(`Are you sure you want to delete item no. ${start+ index + 1}?`)) {
+                JsonItemArray.splice(start + index, 1);
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
-                tableBody.deleteRow(index);
-                let tableRows = tableBody.rows;
-                while (index < tableRows.length) { // updating serial numbers of the items
-                    tableRows[index].cells[3].innerHTML = actionHtml(index);
-                    tableRows[index].cells[0].innerHTML = ++index;
+                if (JsonItemArray.length % tableViewLimit == 0) { // delete view if items are less than the limit
+                    tableViewBtnsBody.children[tableViewBtnsBody.children.length - 1].remove();
+                    if (tableViewNo == tableViewBtnsBody.children.length + 1) { // change view if last view is deleted
+                        changeTableView(tableViewNo - 1, false);
+                        return;
+                    }
+                }
+                if (tableViewNo == Math.ceil(JsonItemArray.length / tableViewLimit)) // if it's the last view
+                    tableBody.rows[tableBody.rows.length - 1].remove(); // then delete last item from the current view
+
+                for (let i = index; i < tableBody.rows.length; ++i) { // perform shifting of items to the top
+                    tableBody.rows[i].cells[0].innerHTML = start + i + 1;
+                    tableBody.rows[i].cells[1].innerHTML = JsonItemArray[start + i][0];
+                    tableBody.rows[i].cells[2].innerHTML = JsonItemArray[start + i][1];
                 }
 
-                if (previousIndex != null) { // if an item was being edited, update the action buttons
-                    if (previousIndex < index)
-                        tableBody.rows[previousIndex].cells[3].innerHTML = actionHtml(previousIndex);
-                    submissionBody.innerHTML = submissionHtml;
-                    previousIndex = null;
-                    refreshForm();
-                }
-                console.log("Deleting item...");
+                refreshSubmissionBody();
+                generateTableViewSummary();
+                // console.log("Deleting item...");
             }
         }
         // note: need to do this with event listeners & function binding instead of onclick (for better performance)
 
         /* edit items on the list */
         function editItem(index) {
-            document.getElementById('title').value = JsonItemArray[index][0];
-            document.getElementById('description').value = JsonItemArray[index][1];
+            let start = (tableViewNo - 1) * tableViewLimit;
+
+            document.getElementById('title').value = JsonItemArray[start + index][0];
+            document.getElementById('description').value = JsonItemArray[start + index][1];
 
             tableBody.rows[index].cells[3].innerHTML = `<i class="text-muted"><b>Pending</b></i>`;
             submissionBody.innerHTML =
@@ -186,24 +329,25 @@
             previousIndex = index; // update the flag
 
             window.scrollTo(0, 0); //scroll to top of the page (for better UX)
-            console.log("Editing item...");
+            // console.log("Editing item...");
         }
 
         /* update items on the list */
         function updateItem(index) {
             let title = document.getElementById('title').value,
-                description = document.getElementById('description').value;
+                description = document.getElementById('description').value,
+                start = (tableViewNo - 1) * tableViewLimit;
 
             if (title == '') {
-                clearTimeout(TimerId);
-                warningBody.innerHTML = warningHtml("Title is a required field!");
-                TimerId = setTimeout(() => warningBody.innerHTML = '', 3000);
-            } else if (title == JsonItemArray[index][0] && description == JsonItemArray[index][1]) {
-                clearTimeout(TimerId);
-                warningBody.innerHTML = warningHtml("At least one field must be changed!");
-                TimerId = setTimeout(() => warningBody.innerHTML = '', 3000);
+                clearTimeout(timerId);
+                messageBody.innerHTML = messageBoxHtml("Title is a required field!");
+                timerId = setTimeout(() => messageBody.innerHTML = '', 3000);
+            } else if (title == JsonItemArray[start + index][0] && description == JsonItemArray[start + index][1]) {
+                clearTimeout(timerId);
+                messageBody.innerHTML = messageBoxHtml("At least one field must be changed!");
+                timerId = setTimeout(() => messageBody.innerHTML = '', 3000);
             } else { // rule: title cannot be empty & at least one field must be changed
-                JsonItemArray[index] = [title, description];
+                JsonItemArray[start + index] = [title, description];
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
                 tableBody.rows[index].cells[1].innerHTML = title;
@@ -211,19 +355,43 @@
 
                 cancelEditing(index);
                 refreshForm();
-                console.log("Updating item...");
+                // console.log("Updating item...");
             }
+        }
+
+        /* swap items on the list */
+        function swapItems(i) {
+            console.log(i);
+        }
+
+        /* toggle list operations */
+        function toggleClass() {
+            // note: disable all submission buttons when toggling list operations
+            const swapActionHtml = index =>
+                `<button type="button" class="btn btn-sm btn-primary" onclick="swapItems(${index})">Select</button>`;
+            let tableRows = tableBody.rows;
+            if (toggleListFlag) {
+                listOperationsBody.children[0].setAttribute('class', 'btn btn-primary');
+                for (let i = 0; i < tableRows.length; ++i)
+                    tableRows[i].cells[3].innerHTML = actionHtml(i);
+                toggleListFlag = false;
+            } else {
+                listOperationsBody.children[0].setAttribute('class', 'btn btn-success');
+                for (let i = 0; i < tableRows.length; ++i)
+                    tableRows[i].cells[3].innerHTML = swapActionHtml(i);
+
+                toggleListFlag = true;
+            }
+            // console.log("Toggling class...");
         }
 
         /* clear items from the list & local storage */
         function clearItems() {
             if (confirm("Are you sure you want to clear the list?")) {
+                refreshSubmissionBody();
                 localStorage.clear();
                 JsonItemArray = [], tableBody.innerHTML = ""; // alternate: window.location.reload();
-                submissionBody.innerHTML = submissionHtml;
-                previousIndex = null;
-                refreshForm();
-                console.log("Clearing list...");
+                // console.log("Clearing list...");
             }
         }
 
@@ -238,6 +406,15 @@
         function refreshForm() {
             document.getElementById('title').value = "";
             document.getElementById('description').value = "";
+        }
+
+        /* refresh all the components of the submission body */
+        function refreshSubmissionBody() { // acts as helper function to minimize code repetition
+            if (previousIndex != null) { // if an item was being edited, then reset the form
+                submissionBody.innerHTML = submissionHtml;
+                previousIndex = null;
+                refreshForm();
+            }
         }
     </script>
 
