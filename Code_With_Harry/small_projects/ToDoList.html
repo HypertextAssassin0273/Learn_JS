@@ -264,6 +264,8 @@
             tableViewBtnsBody.innerHTML = '';
             generateTableViewBtns();
 
+            if (swapMenu) IndexPairs = [null, null]; // reset selected items
+
             tableBody.innerHTML = '';
             generateItemsList();
 
