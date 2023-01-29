@@ -65,7 +65,7 @@
         <div class="d-flex">
             <div id="submission"></div>
             <div id="list-operations" class="ml-auto mr-1">
-                <button class="btn btn-primary" onclick="toggleClass()">Swap</button> <!-- btn-primary -->
+                <button class="btn btn-primary" onclick="toggleMenu()">Swap</button>
                 <button class="btn btn-danger" onclick="clearItems()">Clear</button>
             </div>
         </div>
@@ -117,22 +117,31 @@
     </div>
 
     <script>
-        /* initialize items list along with other variables */
-        let stringifiedJsonItemArray = localStorage.getItem('jsonItems'),
-            JsonItemArray = stringifiedJsonItemArray ? JSON.parse(stringifiedJsonItemArray) : [],
-            // stringifiedJsonPriorityArray = localStorage.getItem('jsonPriorities'),
-            // JsonPriorityArray = stringifiedJsonPriorityArray ? JSON.parse(stringifiedJsonPriorityArray) : [],
-            listOperationsBody = document.getElementById('list-operations'),
+        /* retrieve correctly parsed item array from local storage */
+        const getParsedItemArray = name => {
+            let stringifiedItem = localStorage.getItem(name);
+            return stringifiedItem ? JSON.parse(stringifiedItem) : [];
+        };
+        /* Note: it also provides local scope to destroy stringifiedItem variable after use
+                 since it's in a global region, and we only needed it once */
+
+        /* initialize items list along with other required variables */
+        let JsonItemArray = getParsedItemArray('jsonItems'),
+            // JsonPriorityArray = getParsedItemArray('jsonPriorities'),
+            tableViewLimit = 5, // default: 5 items per view
+            tableViewNo = 1, // default: 1st view
+            timerId = null, // helps to smooth out the warning message
+            swapMenu = false, // flag for toggling list operations menu
+            previousIndex = null, // also acts as a flag to check if an item is being edited
+            IndexPairs = [null, null]; // also acts as flag for selected items in swap menu
+
+        /* retrieve pre-defined (fixed) DOM elements */
+        const listOperationsBody = document.getElementById('list-operations'),
             submissionBody = document.getElementById('submission'),
             messageBody = document.getElementById('warning'),
             tableBody = document.getElementById('table-body'),
             tableViewBtnsBody = document.getElementById('table-view-num-btns'),
-            tableViewSummaryBody = document.getElementById('table-view-summary'),
-            tableViewLimit = 5, // default: 5 items per view
-            tableViewNo = 1, // default: 1st view
-            toggleListFlag = false, // flag for toggling list operations menu
-            previousIndex = null, // acts as a flag to check if an item is being edited
-            timerId = null; // helps to smooth out the warning message
+            tableViewSummaryBody = document.getElementById('table-view-summary');
 
         /* generate submission buttons */
         const submissionHtml = submissionBody.innerHTML =
@@ -155,6 +164,10 @@
         const actionHtml = index =>
             `<button class="btn btn-sm btn-primary" onclick="editItem(${index})">Edit</button>
              <button class="btn btn-sm btn-danger" onclick="deleteItem(${index})">Delete</button>`;
+
+        /* swap action buttons generator */
+        const swapActionHtml = index =>
+            `<button type="button" class="btn btn-sm btn-primary" onclick="setIndexPair(${index})">Select</button>`;
 
         /* table view buttons generator */
         const tableViewBtnHtml = (index, active) =>
@@ -180,13 +193,21 @@
             let start = (tableViewNo - 1) * tableViewLimit, // start index of the items in the view
                 end = start + tableViewLimit; // end index of the items in the view
 
+            const action = swapMenu ? swapActionHtml : actionHtml; // generate corresponding action buttons
+
             for (let i = start; i != end && i != JsonItemArray.length; ++i) {
                 let row = tableBody.insertRow(-1); // '-1' is used to insert row at the end for all browsers
                 row.insertCell(-1).innerHTML = i + 1;
                 row.insertCell(-1).innerHTML = JsonItemArray[i][0];
                 row.insertCell(-1).innerHTML = JsonItemArray[i][1];
-                row.insertCell(-1).innerHTML = actionHtml(i - start);
+                row.insertCell(-1).innerHTML = action(i - start);
             }
+
+            IndexPairs.forEach(IP => { // highlight selected items in swap menu (if any)
+                if (!IP) return; // skip if option is not selected
+                if (IP.view == tableViewNo)
+                    tableBody.rows[IP.idx].cells[3].innerHTML = `<i class="text-muted"><b>Selected</b></i>`;
+            });
         }
         generateItemsList();
 
@@ -198,7 +219,7 @@
         }
         generateTableViewBtns();
 
-        /* operations for changing table view */
+        /* change table view (by number buttons) */
         function changeTableView(index, previousViewNotDeleted = true) {
             if (index == tableViewNo) return;
 
@@ -214,6 +235,7 @@
             generateTableViewSummary();
         }
 
+        /* change table view (by arrow buttons) */
         document.getElementById('table-view-inc-btn').addEventListener('click', () => {
             if (tableViewNo < Math.ceil(JsonItemArray.length / tableViewLimit))
                 changeTableView(tableViewNo + 1);
@@ -335,7 +357,7 @@
                 tableBody.rows[previousIndex].cells[3].innerHTML = actionHtml(previousIndex);
             previousIndex = index; // update the flag
 
-            window.scrollTo(0, 0); //scroll to top of the page (for better UX)
+            // window.scrollTo(0, 0); //scroll to top of the page (for better UX)
             // console.log("Editing item...");
         }
 
@@ -367,29 +389,84 @@
         }
 
         /* swap items on the list */
-        function swapItems(i) {
-            console.log(i);
+        function swapItems() {
+            if (IndexPairs[0] && IndexPairs[1]) {
+                let [{ // destructuring assignment
+                    idx: index1, // represents 'sub' array index (in 2D form for table view)
+                    view: view1 // represents 'main' array index
+                }, {
+                    idx: index2,
+                    view: view2
+                }] = IndexPairs;
+
+                let start1 = (view1 - 1) * tableViewLimit,
+                    start2 = (view2 - 1) * tableViewLimit;
+
+                let temp = JsonItemArray[start1 + index1]; // swapping items
+                JsonItemArray[start1 + index1] = JsonItemArray[start2 + index2];
+                JsonItemArray[start2 + index2] = temp;
+
+                localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
+
+                if (view1 == tableViewNo) {
+                    tableBody.rows[index1].cells[1].innerHTML = JsonItemArray[start1 + index1][0];
+                    tableBody.rows[index1].cells[2].innerHTML = JsonItemArray[start1 + index1][1];
+                }
+                if (view2 == tableViewNo) {
+                    tableBody.rows[index2].cells[1].innerHTML = JsonItemArray[start2 + index2][0];
+                    tableBody.rows[index2].cells[2].innerHTML = JsonItemArray[start2 + index2][1];
+                }
+
+                toggleMenu();
+                // console.log("Swapping items...");
+            } else {
+                clearTimeout(timerId);
+                messageBody.innerHTML = messageBoxHtml("Select two items to swap!", "info");
+                timerId = setTimeout(() => messageBody.innerHTML = '', 3000);
+            }
         }
 
-        /* toggle list operations */
-        function toggleClass() {
-            // note: disable all submission buttons when toggling list operations
-            const swapActionHtml = index =>
-                `<button type="button" class="btn btn-sm btn-primary" onclick="swapItems(${index})">Select</button>`;
+        /* set corresponding item as selected */
+        function setIndexPair(index) {
+            if (IndexPairs[1]) return; // return if both items are already selected
+            IndexPairs[IndexPairs[0] ? 1 : 0] = { // set the first or second item as selected
+                idx: index,
+                view: tableViewNo
+            };
+            tableBody.rows[index].cells[3].innerHTML = `<i class="text-muted"><b>Selected</b></i>`;
+            // console.log("Selected item...");
+        }
+
+        /* change list menu options */
+        function toggleMenu() {
             let tableRows = tableBody.rows;
-            if (toggleListFlag) {
-                listOperationsBody.children[0].setAttribute('class', 'btn btn-primary');
+            if (swapMenu) {
+                submissionBody.innerHTML = submissionHtml;
+                listOperationsBody.innerHTML = // alternate: use .children[i].setAttribute('attrb', 'value')
+                    `<button class="btn btn-primary" onclick="toggleMenu()">Swap</button>
+                     <button class="btn btn-danger" onclick="clearItems()">Clear</button>`;
+
                 for (let i = 0; i < tableRows.length; ++i)
                     tableRows[i].cells[3].innerHTML = actionHtml(i);
-                toggleListFlag = false;
+
+                IndexPairs = [null, null]; // reset selected options
+                swapMenu = false;
             } else {
-                listOperationsBody.children[0].setAttribute('class', 'btn btn-success');
+                submissionBody.innerHTML = `<h5 class="text-muted pl-2"><i><b>Pending Action</b></i></h5>`;
+                listOperationsBody.innerHTML =
+                    `<button class="btn btn-success" onclick="swapItems()">Swap</button>
+                     <button class="btn btn-danger" onclick="toggleMenu()">Cancel</button>`;
+
                 for (let i = 0; i < tableRows.length; ++i)
                     tableRows[i].cells[3].innerHTML = swapActionHtml(i);
 
-                toggleListFlag = true;
+                if (previousIndex != null) { // cancel editing item (if any)
+                    previousIndex = null;
+                    refreshForm();
+                }
+                swapMenu = true;
             }
-            // console.log("Toggling class...");
+            // console.log("Toggling menu...");
         }
 
         /* clear items from the list & local storage */
@@ -427,10 +504,12 @@
         }
     </script>
 
-    <!-- Bootstrap core JavaScript -->
+    <!-- Bootstrap core JavaScript (Optional) -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Note: here, required only for dropdown menu -->
 </body>
 
 </html>
