@@ -109,7 +109,9 @@
                 </button>
             </div>
             <div style="display:inline; float:right; margin-right: 1px;">
-                <p id="table-view-summary" class="text-muted"></p>
+                <p id="table-view-summary" class="text-muted">
+                    Showing 0 to 0 out of 0 entries
+                </p>
             </div>
         </div>
     </div>
@@ -171,7 +173,7 @@
             if (end > JsonItemArray.length) end = JsonItemArray.length; // for last view if items are less than limit
             tableViewSummaryBody.innerHTML = tableViewSummaryHtml(start, end, JsonItemArray.length);
         }
-        generateTableViewSummary();
+        if (JsonItemArray.length) generateTableViewSummary();
 
         /* generate items list */
         function generateItemsList() {
@@ -265,7 +267,7 @@
 
                 let totalViews = Math.ceil(JsonItemArray.length / tableViewLimit);
                 if (JsonItemArray.length % tableViewLimit == 1) // new view is created if items exceed the limit
-                    tableViewBtnsBody.innerHTML += tableViewBtnHtml(totalViews, false);
+                    tableViewBtnsBody.innerHTML += tableViewBtnHtml(totalViews, JsonItemArray.length == 1);
 
                 if (tableViewNo == totalViews) { // add item to the current view if it is the last view
                     let row = tableBody.insertRow(-1);
@@ -289,6 +291,11 @@
                 JsonItemArray.splice(start + index, 1);
                 localStorage.setItem('jsonItems', JSON.stringify(JsonItemArray));
 
+                if (JsonItemArray.length == 0) {
+                    tableBody.innerHTML = tableViewBtnsBody.innerHTML = '';
+                    tableViewSummaryBody.innerHTML = tableViewSummaryHtml(0, 0, 0);
+                    return;
+                }
                 if (JsonItemArray.length % tableViewLimit == 0) { // delete view if items are less than the limit
                     tableViewBtnsBody.children[tableViewBtnsBody.children.length - 1].remove();
                     if (tableViewNo == tableViewBtnsBody.children.length + 1) { // change view if last view is deleted
@@ -297,7 +304,7 @@
                     }
                 }
                 if (tableViewNo == Math.ceil(JsonItemArray.length / tableViewLimit)) // if it's the last view
-                    tableBody.rows[tableBody.rows.length - 1].remove(); // then delete last item from the current view
+                    tableBody.rows[tableBody.rows.length - 1].remove(); // then delete last item from current view
 
                 for (let i = index; i < tableBody.rows.length; ++i) { // perform shifting of items to the top
                     tableBody.rows[i].cells[0].innerHTML = start + i + 1;
@@ -386,11 +393,13 @@
         }
 
         /* clear items from the list & local storage */
-        function clearItems() {
+        function clearItems() { // alternate: window.location.reload();
             if (confirm("Are you sure you want to clear the list?")) {
+                tableViewNo = 1; // reset view to default
                 refreshSubmissionBody();
-                localStorage.clear();
-                JsonItemArray = [], tableBody.innerHTML = ""; // alternate: window.location.reload();
+                JsonItemArray = [], localStorage.clear();
+                tableBody.innerHTML = tableViewBtnsBody.innerHTML = "";
+                tableViewSummaryBody.innerHTML = tableViewSummaryHtml(0, 0, 0);
                 // console.log("Clearing list...");
             }
         }
