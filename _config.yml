@@ -3,4 +3,5 @@ exclude:
   - Code_With_Harry/basics
   - Code_With_Harry/intermediate
   - Code_With_Harry/web_scrapping_example
+  - JS_Specialization_Practice/Course-1--Basics/lessons
   - README
