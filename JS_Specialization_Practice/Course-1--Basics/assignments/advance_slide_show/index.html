@@ -13,7 +13,7 @@
 <body>
 
     <div id="content">
-        <img src="../images/01.jpg">
+        <img src="../@images/01.jpg">
     </div>
 
     <p id="links"><a href="#" id="previous">previous</a><a href="#" id="next">next</a></p>
@@ -42,7 +42,7 @@
 
             function swapImage() {
                 const newSlide = document.createElement("img");
-                newSlide.src = "../images/" + myImages[currentImage];
+                newSlide.src = "../@images/" + myImages[currentImage];
                 newSlide.className = "fade";
                 container.appendChild(newSlide);
 

@@ -8,7 +8,7 @@
 
 <body>
     <div>
-        <img src="../__images/01.jpg" alt="slideshow image" id="myimage">
+        <img src="../@images/01.jpg" alt="slideshow image" id="myimage">
     </div>
     <h1>
         <a href="#" id="previous">previous</a>
@@ -23,7 +23,7 @@
             
             const previous = document.getElementById("previous"),
                   next = document.getElementById("next"),
-                  imageLocation = '../__images/';
+                  imageLocation = '../@images/';
 
             previous.addEventListener("click", () => {
                 imageCount = (imageCount ? imageCount - 1 : myImages.length - 1);
