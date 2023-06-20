@@ -1,4 +1,4 @@
-# Learn_JS Mini Projects
+# Mini Projects (live demo)
 ## 1. Code with Harry
 - [Clock](https://hypertextassassin0273.github.io/Learn_JS/Code_With_Harry/small_projects/Clock.html)
 - [ToDo List](https://hypertextassassin0273.github.io/Learn_JS/Code_With_Harry/small_projects/ToDoList.html)
