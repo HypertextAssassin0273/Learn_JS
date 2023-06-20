@@ -1,6 +1,6 @@
 # Learn_JS Mini Projects
 ## 1. Code with Harry
-- [Clock](https://hypertextassassin0273.github.io/Learn_JS/Code_With_Harry/small_projects/Clock.html)
+- <a href="https://hypertextassassin0273.github.io/Learn_JS/Code_With_Harry/small_projects/Clock.html" target="_blank">Clock</a>
 - [ToDo List](https://hypertextassassin0273.github.io/Learn_JS/Code_With_Harry/small_projects/ToDoList.html)
 ## 2. JS Specialization
 ### Course 1: Basics
