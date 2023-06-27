@@ -6,3 +6,4 @@
 ### Course 1: Basics
 - [Simple Slide Show](https://hypertextassassin0273.github.io/Learn_JS/JS_Specialization_Practice/Course-1--Basics/assignments/simple_slide_show)
 - [Modern Slide Show](https://hypertextassassin0273.github.io/Learn_JS/JS_Specialization_Practice/Course-1--Basics/assignments/advance_slide_show)
+- [Basic Converter](https://hypertextassassin0273.github.io/Learn_JS/JS_Specialization_Practice/Course-1--Basics/assignments/basic_converter)
