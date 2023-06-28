@@ -1,0 +1,77 @@
+/****** Default ******/
+h1, h2, h3, h4, ul, li, p {
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, p {
+    margin-bottom: 1em;
+}
+
+body {
+    font-family: Arial;
+    color: #333;
+}
+
+header, footer {
+    background-color: cornflowerblue;
+    text-align: center;
+    color: white;
+}
+
+header {
+    padding: 50px;
+    margin-bottom: 20px;
+}
+
+footer {
+    padding: 20px;
+    margin-top: 20px;
+}
+
+main {
+    max-width: 800px;
+    padding: 20px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+main form {
+    width: 40%;
+}
+
+main article {
+    width: 45%;
+}
+
+/****** Form ******/
+label {
+    display: block;
+    margin-bottom: 0.5em;
+}
+
+input, textarea, #details button {
+    display: block;
+    width: 100%;
+    margin-bottom: 1em;
+    border: 1px solid #666;
+    padding: 10px;
+    box-sizing
+    : border-box;
+}
+
+/****** Card Display ******/
+#title {
+    text-align: center;
+}
+
+img {
+    max-width: 100%;
+}
+
+.card {
+    padding: 20px;
+    background-color: #efefef;
+    margin-bottom: 20px;
+}
