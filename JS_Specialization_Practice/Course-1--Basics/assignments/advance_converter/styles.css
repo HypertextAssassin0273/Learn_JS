@@ -1,4 +1,4 @@
-/********** Default Styles ***********/
+/********** Default ***********/
 h1, h2, p {
   margin: 0;
   padding: 0;
@@ -12,11 +12,13 @@ body {
 
 h1, h2, h3, h4 {
   font-family: 'Oswald', sans-serif;
+  font-weight: 400;
 }
 
 h1 {
+  font-size: 300%;
   text-align: center;
-  margin-bottom: 1em;
+  margin-bottom: .5em;
   text-transform: uppercase;
 }
 
@@ -25,7 +27,7 @@ h2 {
 }
 
 .invisible {
-	color:#AABCCC;
+  color: #AABCCC;
 }
 
 .container {
@@ -45,9 +47,20 @@ h2 {
 
 p {
   margin-bottom: 1em;
+  font-size: 120%;
 }
 
-/********** Form Styles ***********/
+#guide {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  text-align: center;
+  font-size: 140%;
+  padding: 15px 0;
+  width: 100%;
+}
+
+/********** Form ***********/
 input[type="text"] {
   height: 38px;
   padding: 6px 10px;
@@ -58,7 +71,7 @@ input[type="text"] {
   box-shadow: none;
   box-sizing: border-box;
   text-align: center;
-  width: 80px;
+  width: 100px;
 }
 
 input[type="text"]:focus {
@@ -72,7 +85,7 @@ label {
   font-weight: 600;
 }
 
-/********** Button Styles ***********/
+/********** Button ***********/
 .button, button,
 input[type="submit"],
 input[type="reset"],

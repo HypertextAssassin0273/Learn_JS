@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Distance Converter</title>
+
+	<!-- Normalize CSS -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="https://fonts.googleapis.com/css?family=Oswald|PT+Sans&display=swap" rel="stylesheet">
+
+	<!-- My Styles -->
+	<link href="styles.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+	<h1><span class="s1">miles</span> to <span class="s2">kilometers</span> converter</h1>
+
+	<div class="container top">
+		<p>Enter number of <span class="s1">miles</span> and click the button to convert the distance to <span
+				class="s2">kilometers</span></p>
+
+		<form method="post" id="form">
+			<input type="text" id="distance" placeholder="miles">
+			<input type="submit" value="Convert Distance">
+		</form>
+	</div>
+
+	<div class="container bottom">
+		<h2 class="invisible" id="answer">answer goes here</h2>
+	</div>
+
+	<p id="guide">
+		Press the "ctrl" key to switch to <span class="s2">kilometer</span> conversion
+	</p>
+
+	<script>
+		(function () { // IIFE
+			"use strict";
+
+			let type = 'miles',
+				factor = 1.60934;
+
+			const form = document.getElementById('form'),
+				answer = document.getElementById('answer'),
+				input = document.getElementById('distance'),
+
+				s1 = document.querySelectorAll('.s1'), // NodeList of s1 class elements
+				s2 = document.querySelectorAll('.s2');
+
+			document.addEventListener('keydown', event => { // toggle b/w miles & kilometers
+				if (event.key === 'Control') {
+					s2.forEach(span => span.textContent = type);
+
+					if (type === 'miles') {
+						factor = 0.621371;
+						type = 'kilometers';
+					} else {
+						factor = 1.60934;
+						type = 'miles';
+					}
+
+					s1.forEach(span => span.textContent = type);
+					input.placeholder = type;
+				}
+			});
+
+			form.addEventListener('submit', event => {
+				event.preventDefault();
+
+				const distance = parseFloat(document.getElementById('distance').value);
+
+				answer.textContent = distance ?
+					`${distance} ${type} is ${(distance * factor).toFixed(3)} ${s2[0].textContent}` :
+					'Please provide a number!';
+			});
+
+			form.addEventListener('submit',
+				() => answer.classList.remove('invisible'), {
+					once: true
+				}
+			); //Note: extra overhead since, the same can be done with proper CSS
+
+		})();
+	</script>
+</body>
+
+</html>
