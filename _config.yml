@@ -3,6 +3,6 @@ exclude:
   - Code_With_Harry/basics
   - Code_With_Harry/intermediate
   - Code_With_Harry/web_scrapping_example
-  - JS_Specialization_Practice/Course-1--Basics/lessons
-  - JS_Specialization_Practice/Course-2--Animation-with-JS-&-jQuery/lessons
+  - Coursera_JS_Specialization/Course-1--Basics/lessons
+  - Coursera_JS_Specialization/Course-2--Animation-with-JS-&-jQuery/lessons
   - README
